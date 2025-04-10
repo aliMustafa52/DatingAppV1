@@ -18,7 +18,7 @@ namespace DatingApp.Api.Controllers
         private readonly IJwtProvider _jwtProvider = jwtProvider;
 
         [HttpPost("register")]
-        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             var isUsernameExists = await UserExistsAsync(request.Username);
             if (isUsernameExists)
@@ -36,11 +36,10 @@ namespace DatingApp.Api.Controllers
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            var userResponse = new RegisterResponse(
-                user.Id,
-                user.UserName
-            );
-            return Ok(userResponse);
+            var (token, expiresIn) = _jwtProvider.GenerateToken(user);
+
+            var authResponse = new AuthResponse(user.Id, user.UserName, token, expiresIn * 60);
+            return Ok(authResponse);
         }
 
         [HttpPost("Login")]
