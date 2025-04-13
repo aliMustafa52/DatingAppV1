@@ -1,5 +1,6 @@
 using DatingApp.Api;
 using DatingApp.Api.Data;
+using DatingApp.Api.Middleware;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
@@ -34,5 +35,7 @@ app.UseCors();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.Run();

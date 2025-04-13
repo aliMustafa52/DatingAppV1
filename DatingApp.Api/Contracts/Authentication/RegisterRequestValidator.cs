@@ -8,7 +8,9 @@ namespace DatingApp.Api.Contracts.Authentication
         {
             RuleFor(x => x.Username).NotEmpty();
 
-            RuleFor(x => x.Password).NotEmpty();
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .Length(8,16);
         }
     }
 }
