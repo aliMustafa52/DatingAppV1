@@ -2,6 +2,7 @@
 using DatingApp.Api.Contracts.Authentication;
 using DatingApp.Api.Data;
 using DatingApp.Api.Entities;
+using DatingApp.Api.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,22 +25,24 @@ namespace DatingApp.Api.Controllers
             if (isUsernameExists)
                 return BadRequest("Username is already exists");
 
-            using var hmac = new HMACSHA512();
+            return Ok();
 
-            var user = new ApplicationUser
-            {
-                UserName = request.Username.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.Password)),
-                PasswordSalt = hmac.Key
-            };
+            //using var hmac = new HMACSHA512();
 
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            //var user = new ApplicationUser
+            //{
+            //    UserName = request.Username.ToLower(),
+            //    PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.Password)),
+            //    PasswordSalt = hmac.Key
+            //};
 
-            var (token, expiresIn) = _jwtProvider.GenerateToken(user);
+            //await _context.Users.AddAsync(user);
+            //await _context.SaveChangesAsync();
 
-            var authResponse = new AuthResponse(user.Id, user.UserName, token, expiresIn * 60);
-            return Ok(authResponse);
+            //var (token, expiresIn) = _jwtProvider.GenerateToken(user);
+
+            //var authResponse = new AuthResponse(user.Id, user.UserName, token, expiresIn * 60);
+            //return Ok(authResponse);
         }
 
         [HttpPost("Login")]
@@ -60,7 +63,7 @@ namespace DatingApp.Api.Controllers
 
             var (token, expiresIn) = _jwtProvider.GenerateToken(user);
 
-            var authResponse = new AuthResponse(user.Id,user.UserName,token,expiresIn * 60);
+            var authResponse = new AuthResponse(user.Id,user.UserName,user.DateOfBirth.CalculateAge(),token,expiresIn * 60);
             return Ok(authResponse);
         }
 

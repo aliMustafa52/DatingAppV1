@@ -1,5 +1,7 @@
 ﻿using DatingApp.Api.Authentication;
 using DatingApp.Api.Data;
+using DatingApp.Api.Interfaces;
+using DatingApp.Api.Repositories;
 using FluentValidation;
 using Mapster;
 using MapsterMapper;
@@ -22,6 +24,8 @@ namespace DatingApp.Api
                 .AddFluentValidationConfig()
                 .AddCorsConfig()
                 .AddAuthConfig(configuration);
+
+            services.AddScoped<IUserRepository, UserRepository>();
 
             return services;
         }

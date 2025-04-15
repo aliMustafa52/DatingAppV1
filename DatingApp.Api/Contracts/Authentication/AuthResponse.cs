@@ -4,6 +4,7 @@
     (
         int Id,
         string Username,
+        int Age,
         string Token,
         int ExpiresIn
     );

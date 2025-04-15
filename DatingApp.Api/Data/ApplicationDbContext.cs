@@ -7,5 +7,6 @@ namespace DatingApp.Api.Data
         : DbContext(options)
     {
         public required DbSet<ApplicationUser> Users { get; set; }
+        public required DbSet<Photo> Photos { get; set; }
     }
 }
