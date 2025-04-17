@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace DatingApp.Api.Controllers
 {
@@ -45,5 +46,11 @@ namespace DatingApp.Api.Controllers
                 ? Ok(result.Value)
                 : result.ToProblem();
         }
+
+        //[HttpPut]
+        //public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
+        //{
+        //    var username = User.FindFirst(ClaimTypes.NameIdentifier);
+        //}
     }
 }
