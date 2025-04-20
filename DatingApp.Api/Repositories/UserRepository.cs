@@ -17,55 +17,36 @@ namespace DatingApp.Api.Repositories
         {
             return await _context.Users
                     .Include(u => u.Photos)
+                    .AsNoTracking()
                     .ToListAsync();
         }
 
-        public async Task<Result<ApplicationUser>> GetAsync(int id)
+        public async Task<ApplicationUser?> GetByIdAsync(int id)
         {
             var user = await _context.Users
                 .Include(u => u.Photos)
                 .SingleOrDefaultAsync(u => u.Id == id);
-            if (user is null)
-                return Result.Failure<ApplicationUser>(UserErrors.UserNotFound);
 
-            return Result.Success(user);
+            return user;
         }
 
-        public async Task<Result<ApplicationUser>> GetByUsernameAsync(string username)
+        public async Task<ApplicationUser?> GetByUsernameAsync(string username)
         {
             var user = await _context.Users
                 .Include(u => u.Photos)
                 .SingleOrDefaultAsync(u => u.UserName == username);
-            if (user is null)
-                return Result.Failure<ApplicationUser>(UserErrors.UserNotFound);
 
-            return Result.Success(user);
+            return user;
         }
 
-        public async Task<Result<UserResponse>> GetResponseByUsernameAsync(string username)
+        public async Task<int> SaveAllAsync()
         {
-            var user = await _context.Users
-                .Where(u => u.UserName == username)
-                .ProjectToType<UserResponse>()
-                .SingleOrDefaultAsync();
-            if (user is null)
-                return Result.Failure<UserResponse>(UserErrors.UserNotFound);
-
-            return Result.Success(user);
-        }
-
-        public async Task<Result> SaveAllAsync()
-        {
-            if (await _context.SaveChangesAsync() > 0)
-                return Result.Success();
-
-            //TODO: change this error
-            return Result.Failure(UserErrors.FailedToSaveChanges);
+            return await _context.SaveChangesAsync();
         }
 
         public void Update(ApplicationUser user)
         {
-            _context.Entry(user).State = EntityState.Modified;
+            _context.Users.Update(user);
         }
     }
 }

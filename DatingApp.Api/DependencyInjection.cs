@@ -2,6 +2,7 @@
 using DatingApp.Api.Data;
 using DatingApp.Api.Interfaces;
 using DatingApp.Api.Repositories;
+using DatingApp.Api.Services.UsersService;
 using FluentValidation;
 using Mapster;
 using MapsterMapper;
@@ -26,6 +27,8 @@ namespace DatingApp.Api
                 .AddAuthConfig(configuration);
 
             services.AddScoped<IUserRepository, UserRepository>();
+
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }
