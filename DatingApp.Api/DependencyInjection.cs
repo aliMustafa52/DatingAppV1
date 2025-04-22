@@ -1,7 +1,9 @@
 ﻿using DatingApp.Api.Authentication;
 using DatingApp.Api.Data;
+using DatingApp.Api.Helpers;
 using DatingApp.Api.Interfaces;
 using DatingApp.Api.Repositories;
+using DatingApp.Api.Services.PhotosService;
 using DatingApp.Api.Services.UsersService;
 using FluentValidation;
 using Mapster;
@@ -29,6 +31,12 @@ namespace DatingApp.Api
             services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPhotoService, PhotoService>();
+
+            services.AddOptions<CloudinarySettings>()
+                .BindConfiguration(nameof(CloudinarySettings))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
             return services;
         }

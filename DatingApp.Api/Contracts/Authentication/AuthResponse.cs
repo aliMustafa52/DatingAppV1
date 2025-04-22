@@ -4,8 +4,8 @@
     (
         int Id,
         string Username,
-        int Age,
         string Token,
-        int ExpiresIn
+        int ExpiresIn,
+        string? PhotoUrl
     );
 }

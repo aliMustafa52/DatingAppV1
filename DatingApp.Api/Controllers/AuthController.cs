@@ -49,6 +49,7 @@ namespace DatingApp.Api.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var user = await _context.Users
+                .Include(u => u.Photos)
                 .SingleOrDefaultAsync(x => x.UserName == request.Username.ToLower());
             if (user is null)
                 return Unauthorized("Invalid Username");
@@ -63,7 +64,12 @@ namespace DatingApp.Api.Controllers
 
             var (token, expiresIn) = _jwtProvider.GenerateToken(user);
 
-            var authResponse = new AuthResponse(user.Id,user.UserName,user.DateOfBirth.CalculateAge(),token,expiresIn * 60);
+            var mainPhotoUrl = user.Photos
+                .Where(p => p.IsMain)
+                .Select(p => p.Url)
+                .SingleOrDefault();
+
+            var authResponse = new AuthResponse(user.Id,user.UserName,token,expiresIn * 60, mainPhotoUrl);
             return Ok(authResponse);
         }
 
