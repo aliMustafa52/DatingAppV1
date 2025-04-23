@@ -12,7 +12,8 @@ namespace DatingApp.Api.Maping
         {
             config.NewConfig<ApplicationUser, UserResponse>()
                 .Map(dest => dest.Age, src => src.DateOfBirth.CalculateAge())
-                .Map(dest => dest.PhotoUrl, src => src.Photos.SingleOrDefault(p => p.IsMain)!.Url);
+                .Map(dest => dest.PhotoUrl, src => src.Photos.SingleOrDefault(p => p.IsMain)!.Url,
+                    srcCond => srcCond.Photos.SingleOrDefault(p => p.IsMain) != null);
         }
     }
 }

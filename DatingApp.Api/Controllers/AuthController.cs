@@ -3,7 +3,9 @@ using DatingApp.Api.Contracts.Authentication;
 using DatingApp.Api.Data;
 using DatingApp.Api.Entities;
 using DatingApp.Api.Extensions;
+using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
@@ -25,24 +27,25 @@ namespace DatingApp.Api.Controllers
             if (isUsernameExists)
                 return BadRequest("Username is already exists");
 
-            return Ok();
+            using var hmac = new HMACSHA512();
+            var user = request.Adapt<ApplicationUser>();
+            user.UserName = request.Username.ToLower();
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
+            user.PasswordSalt = hmac.Key;
 
-            //using var hmac = new HMACSHA512();
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
 
-            //var user = new ApplicationUser
-            //{
-            //    UserName = request.Username.ToLower(),
-            //    PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.Password)),
-            //    PasswordSalt = hmac.Key
-            //};
+            var (token, expiresIn) = _jwtProvider.GenerateToken(user);
 
-            //await _context.Users.AddAsync(user);
-            //await _context.SaveChangesAsync();
+            var authResponse = new AuthResponse(
+                    user.Id,
+                    user.UserName,
+                    user.KnownAs,
+                    token,
+                    expiresIn * 60,null);
 
-            //var (token, expiresIn) = _jwtProvider.GenerateToken(user);
-
-            //var authResponse = new AuthResponse(user.Id, user.UserName, token, expiresIn * 60);
-            //return Ok(authResponse);
+            return Ok(authResponse);
         }
 
         [HttpPost("Login")]
@@ -69,7 +72,14 @@ namespace DatingApp.Api.Controllers
                 .Select(p => p.Url)
                 .SingleOrDefault();
 
-            var authResponse = new AuthResponse(user.Id,user.UserName,token,expiresIn * 60, mainPhotoUrl);
+            var authResponse = new AuthResponse(
+                    user.Id,
+                    user.UserName,
+                    user.KnownAs,
+                    token,
+                    expiresIn * 60,
+                    mainPhotoUrl);
+
             return Ok(authResponse);
         }
 

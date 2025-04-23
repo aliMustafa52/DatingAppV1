@@ -77,6 +77,9 @@ namespace DatingApp.Api.Services.UsersService
                 PublicId = result.PublicId,
             };
 
+            if(user.Photos.Count == 0)
+                photo.IsMain = true;
+
             user.Photos.Add(photo);
 
             var updated = await _userRepository.SaveAllAsync();
