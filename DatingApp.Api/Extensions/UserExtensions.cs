@@ -8,5 +8,10 @@ namespace DatingApp.Api.Extensions
         {
             return user.FindFirstValue(ClaimTypes.Email);
         }
+
+        public static int GetUserId(this ClaimsPrincipal user)
+        {
+            return int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        }
     }
 }

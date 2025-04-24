@@ -43,7 +43,9 @@ namespace DatingApp.Api.Controllers
                     user.UserName,
                     user.KnownAs,
                     token,
-                    expiresIn * 60,null);
+                    expiresIn * 60,
+                    null,
+                    user.Gender);
 
             return Ok(authResponse);
         }
@@ -78,7 +80,8 @@ namespace DatingApp.Api.Controllers
                     user.KnownAs,
                     token,
                     expiresIn * 60,
-                    mainPhotoUrl);
+                    mainPhotoUrl,
+                    user.Gender);
 
             return Ok(authResponse);
         }

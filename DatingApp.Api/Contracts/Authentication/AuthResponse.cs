@@ -7,6 +7,7 @@
         string KnownAs,
         string Token,
         int ExpiresIn,
-        string? PhotoUrl
+        string? PhotoUrl,
+        string Gender
     );
 }

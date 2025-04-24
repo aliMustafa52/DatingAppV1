@@ -1,4 +1,5 @@
 ﻿using DatingApp.Api.Abstractions;
+using DatingApp.Api.Contracts.Common;
 using DatingApp.Api.Contracts.Users;
 using DatingApp.Api.Data;
 using DatingApp.Api.Entities;
@@ -13,18 +14,18 @@ namespace DatingApp.Api.Repositories
     {
         private readonly ApplicationDbContext _context = context;
 
-        public async Task<IEnumerable<ApplicationUser>> GetAllAsync()
+        public IQueryable<ApplicationUser> GetAll()
         {
-            return await _context.Users
+            var users = _context.Users
                     .Include(u => u.Photos)
-                    .AsNoTracking()
-                    .ToListAsync();
+                    .AsNoTracking();
+
+            return users;
         }
 
         public async Task<ApplicationUser?> GetByIdAsync(int id)
         {
             var user = await _context.Users
-                .Include(u => u.Photos)
                 .SingleOrDefaultAsync(u => u.Id == id);
 
             return user;

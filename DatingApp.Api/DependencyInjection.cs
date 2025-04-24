@@ -21,6 +21,11 @@ namespace DatingApp.Api
     {
         public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddControllers(options =>
+            {
+                options.Filters.Add<LogUserActivity>();
+            });
+
             services
                 .AddDbContextConfig(configuration)
                 .AddMapsterConfig()
@@ -32,6 +37,7 @@ namespace DatingApp.Api
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPhotoService, PhotoService>();
+            //services.AddScoped<LogUserActivity>();
 
             services.AddOptions<CloudinarySettings>()
                 .BindConfiguration(nameof(CloudinarySettings))

@@ -1,4 +1,5 @@
 ﻿using DatingApp.Api.Abstractions;
+using DatingApp.Api.Contracts.Common;
 using DatingApp.Api.Contracts.Users;
 using DatingApp.Api.Entities;
 using DatingApp.Api.Errors;
@@ -14,12 +15,41 @@ namespace DatingApp.Api.Services.UsersService
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IPhotoService _photoService = photoService;
 
-        public async Task<IEnumerable<UserResponse>> GetAllAsync()
+        public async Task<PaginatedList<UserResponse>> GetAllAsync(RequestFilters requestFilters, CancellationToken cancellationToken = default)
         {
-            var users = await _userRepository.GetAllAsync();
-            var userResponses = users.Adapt<IEnumerable<UserResponse>>();
+            var users = _userRepository.GetAll();
 
-            return userResponses;
+            users = users
+                    .Where(u => u.UserName != requestFilters.CurrentUsername);
+
+            if (!string.IsNullOrEmpty(requestFilters.Gender))
+            {
+                users = users
+                .Where(u =>u.Gender.ToLower() == requestFilters.Gender.ToLower());
+            }
+
+            var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-requestFilters.MaxAge - 1 ));
+            var maxDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-requestFilters.MinAge));
+
+            users = users.Where(x => x.DateOfBirth >= minDob && x.DateOfBirth <= maxDob);
+
+            //users = requestFilters.OrderBy switch
+            //{
+            //    "created" => users.OrderByDescending(x => x.Created),
+            //    _ => users.OrderByDescending(x => x.LastActive)
+            //};
+            if (requestFilters.OrderBy == "created")
+                users = users.OrderByDescending(x => x.Created);
+            else
+                users = users.OrderByDescending(x => x.LastActive);
+
+
+            var usersResponse = users.ProjectToType<UserResponse>();
+
+            var response = await PaginatedList<UserResponse>.CreateAsync(usersResponse,
+                requestFilters.PageNumber, requestFilters.PageSize, cancellationToken);
+
+            return response;
         } 
 
         public async Task<Result<UserResponse>> GetUserByIdAsync(int id)

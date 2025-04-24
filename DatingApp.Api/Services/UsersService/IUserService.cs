@@ -1,4 +1,5 @@
 ﻿using DatingApp.Api.Abstractions;
+using DatingApp.Api.Contracts.Common;
 using DatingApp.Api.Contracts.Users;
 using DatingApp.Api.Entities;
 
@@ -6,7 +7,7 @@ namespace DatingApp.Api.Services.UsersService
 {
     public interface IUserService
     {
-        Task<IEnumerable<UserResponse>> GetAllAsync();
+        Task<PaginatedList<UserResponse>> GetAllAsync(RequestFilters requestFilters, CancellationToken cancellationToken = default);
         Task<Result<UserResponse>> GetUserByIdAsync(int id);
         Task<Result<UserResponse>> GetUserByUsernameAsync(string username);
         Task<Result> UpdateUserByUsernameAsync(string username, UpdateUserRequest request);
