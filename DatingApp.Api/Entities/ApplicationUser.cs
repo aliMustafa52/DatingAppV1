@@ -21,5 +21,11 @@
         public required string Country { get; set; }
 
         public ICollection<Photo> Photos { get; set; } = [];
+
+        //public List<ApplicationUser> LikedUsers { get; set; } = [];
+        //public List<ApplicationUser> LikedByUsers { get; set; } = [];
+
+        public List<UserLike> LikedUsers { get; set; } = [];
+        public List<UserLike> LikedByUsers { get; set; } = [];
     }
 }

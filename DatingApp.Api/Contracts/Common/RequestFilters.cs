@@ -1,12 +1,7 @@
 ﻿namespace DatingApp.Api.Contracts.Common
 {
-    public record RequestFilters
+    public record RequestFilters : RequestPaginationFilters
     {
-        public int PageNumber { get; init; } = 1;
-        public int PageSize { get; init; } = 10;
-
-        //public string? SearchValue { get; init; }
-
         public string? Gender { get; init; }
         public string? CurrentUsername { get; set; }
         public int MinAge { get; init; } = 18;
