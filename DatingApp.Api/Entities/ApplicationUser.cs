@@ -27,5 +27,8 @@
 
         public List<UserLike> LikedUsers { get; set; } = [];
         public List<UserLike> LikedByUsers { get; set; } = [];
+
+        public List<Message> SentMessages { get; set; } = [];
+        public List<Message> RecivedMessages { get; set; } = [];
     }
 }

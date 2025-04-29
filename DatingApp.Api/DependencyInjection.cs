@@ -4,6 +4,7 @@ using DatingApp.Api.Helpers;
 using DatingApp.Api.Interfaces;
 using DatingApp.Api.Repositories;
 using DatingApp.Api.Services.LikesService;
+using DatingApp.Api.Services.MessagesService;
 using DatingApp.Api.Services.PhotosService;
 using DatingApp.Api.Services.UsersService;
 using FluentValidation;
@@ -36,10 +37,12 @@ namespace DatingApp.Api
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ILikesRepository, LikesRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<ILikesService, LikesService>();
+            services.AddScoped<IMessagesService, MessagesService>();
             //services.AddScoped<LogUserActivity>();
 
             services.AddOptions<CloudinarySettings>()
