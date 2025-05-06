@@ -35,7 +35,7 @@ namespace DatingApp.Api.Repositories
         {
             var user = await _context.Users
                 .Include(u => u.Photos)
-                .SingleOrDefaultAsync(u => u.UserName == username);
+                .SingleOrDefaultAsync(u => u.NormalizedUserName == username.ToUpper());
 
             return user;
         }

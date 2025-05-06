@@ -1,13 +1,9 @@
-﻿namespace DatingApp.Api.Entities
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace DatingApp.Api.Entities
 {
-    public class ApplicationUser
+    public class ApplicationUser : IdentityUser<int>
     {
-        public int Id { get; set; }
-
-        public required string UserName { get; set; }
-
-        public byte[] PasswordHash { get; set; } = [];
-        public byte[] PasswordSalt { get; set; } = [];
         public DateOnly DateOfBirth { get; set; }
         public required string KnownAs { get; set; }
         public DateTime Created {  get; set; } = DateTime.UtcNow;
@@ -30,5 +26,7 @@
 
         public List<Message> SentMessages { get; set; } = [];
         public List<Message> RecivedMessages { get; set; } = [];
+
+        public ICollection<ApplicationUserRole> UserRoles { get; set; } = [];
     }
 }

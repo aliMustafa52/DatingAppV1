@@ -15,9 +15,9 @@ namespace DatingApp.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(ApplicationDbContext context, IJwtProvider jwtProvider) : ControllerBase
+    public class AuthController(UserManager<ApplicationUser> userManager, IJwtProvider jwtProvider) : ControllerBase
     {
-        private readonly ApplicationDbContext _context = context;
+        private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly IJwtProvider _jwtProvider = jwtProvider;
 
         [HttpPost("register")]
@@ -27,16 +27,17 @@ namespace DatingApp.Api.Controllers
             if (isUsernameExists)
                 return BadRequest("Username is already exists");
 
-            using var hmac = new HMACSHA512();
             var user = request.Adapt<ApplicationUser>();
             user.UserName = request.Username.ToLower();
-            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
-            user.PasswordSalt = hmac.Key;
 
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if(!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
 
-            var (token, expiresIn) = _jwtProvider.GenerateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles);
 
             var authResponse = new AuthResponse(
                     user.Id,
@@ -53,21 +54,18 @@ namespace DatingApp.Api.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _context.Users
+            var user = await _userManager.Users
                 .Include(u => u.Photos)
-                .SingleOrDefaultAsync(x => x.UserName == request.Username.ToLower());
+                .SingleOrDefaultAsync(x => x.NormalizedUserName == request.Username.ToUpper());
             if (user is null)
                 return Unauthorized("Invalid Username");
 
-            using var hmac = new HMACSHA512(user.PasswordSalt);
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
-            for(int i=0; i < computedHash.Length; i++)
-            {
-                if (computedHash[i] != user.PasswordHash[i])
-                    return Unauthorized("Invalid Password");
-            }
+            var roles = await _userManager.GetRolesAsync(user);
+            var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles);
 
-            var (token, expiresIn) = _jwtProvider.GenerateToken(user);
+            var isCorrect = await _userManager.CheckPasswordAsync(user, request.Password);
+            if(!isCorrect)
+                return Unauthorized("Invalid Password");
 
             var mainPhotoUrl = user.Photos
                 .Where(p => p.IsMain)
@@ -76,7 +74,7 @@ namespace DatingApp.Api.Controllers
 
             var authResponse = new AuthResponse(
                     user.Id,
-                    user.UserName,
+                    user.UserName!,
                     user.KnownAs,
                     token,
                     expiresIn * 60,
@@ -88,7 +86,7 @@ namespace DatingApp.Api.Controllers
 
         private async Task<bool> UserExistsAsync(string username)
         {
-            var isExists = await _context.Users.AnyAsync(u => u.UserName.ToLower() == username.ToLower());
+            var isExists = await _userManager.Users.AnyAsync(u => u.UserName!.ToLower() == username.ToLower());
             return isExists;
         }
 

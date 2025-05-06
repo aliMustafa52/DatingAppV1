@@ -24,6 +24,12 @@ namespace DatingApp.Api.Data.EntitiesConfigrations
             //              .HasForeignKey("LikedByUserId")
             //              .OnDelete(DeleteBehavior.Cascade)
             //    );
+
+            builder
+                .HasMany(r => r.UserRoles)
+                .WithOne(ur => ur.User)
+                .HasForeignKey(ur => ur.UserId)
+                .IsRequired();
         }
     }
 }

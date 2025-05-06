@@ -1,8 +1,10 @@
 ﻿using DatingApp.Api.Authentication;
 using DatingApp.Api.Data;
+using DatingApp.Api.Entities;
 using DatingApp.Api.Helpers;
 using DatingApp.Api.Interfaces;
 using DatingApp.Api.Repositories;
+using DatingApp.Api.Services.AdminsService;
 using DatingApp.Api.Services.LikesService;
 using DatingApp.Api.Services.MessagesService;
 using DatingApp.Api.Services.PhotosService;
@@ -11,6 +13,7 @@ using FluentValidation;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
@@ -43,12 +46,15 @@ namespace DatingApp.Api
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<ILikesService, LikesService>();
             services.AddScoped<IMessagesService, MessagesService>();
+            services.AddScoped<IAdminsService, AdminsService>();
             //services.AddScoped<LogUserActivity>();
 
             services.AddOptions<CloudinarySettings>()
                 .BindConfiguration(nameof(CloudinarySettings))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
+
+            services.AddSignalR();
 
             return services;
         }
@@ -102,6 +108,15 @@ namespace DatingApp.Api
 
         private static IServiceCollection AddAuthConfig(this IServiceCollection services, IConfiguration configuration)
         {
+
+            services.AddIdentityCore<ApplicationUser>(opt =>
+            {
+                opt.Password.RequireNonAlphanumeric = false;
+            })
+                .AddRoles<ApplicationRole>()
+                .AddRoleManager<RoleManager<ApplicationRole>>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
             services.AddSingleton<IJwtProvider, JwtProvider>();
 
             var jwtSetting = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
@@ -125,6 +140,10 @@ namespace DatingApp.Api
                         ValidAudience = jwtSetting?.Audience
                     };
                 });
+
+            services.AddAuthorizationBuilder()
+                .AddPolicy("RequiredAdminRole", policy => policy.RequireRole("Admin"))
+                .AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Moderator", "Moderator"));
 
             services.AddOptions<JwtOptions>()
                 .BindConfiguration(JwtOptions.SectionName)

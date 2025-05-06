@@ -13,12 +13,13 @@ namespace DatingApp.Api.Authentication
     {
         private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-        public (string token, int expiresIn) GenerateToken(ApplicationUser user)
+        public (string token, int expiresIn) GenerateToken(ApplicationUser user, IEnumerable<string> roles)
         {
             Claim[] claims = [
                 new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new(JwtRegisteredClaimNames.Email, user.UserName!),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(nameof(roles), JsonSerializer.Serialize(roles), JsonClaimValueTypes.JsonArray)
             ];
 
             var expiresIn = _jwtOptions.ExpiryMinutes;
