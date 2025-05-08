@@ -38,6 +38,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHub<PresenceHub>("hubs/presence");
+app.MapHub<MessageHub>("hubs/message");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
@@ -47,6 +48,8 @@ try
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>> ();
     await context.Database.MigrateAsync();
+
+    await context.Database.ExecuteSqlRawAsync("Delete from [Connections]");
     await Seed.SeedUsers(userManager, roleManager);
 }
 catch (Exception ex)

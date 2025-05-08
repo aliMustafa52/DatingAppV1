@@ -14,6 +14,8 @@ namespace DatingApp.Api.Data
         public required DbSet<Photo> Photos { get; set; }
         public required DbSet<UserLike> Likes { get; set; }
         public required DbSet<Message> Messages { get; set; }
+        public required DbSet<Group> Groups { get; set; }
+        public required DbSet<Connection> Connections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

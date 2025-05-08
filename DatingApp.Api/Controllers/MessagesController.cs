@@ -3,6 +3,7 @@ using DatingApp.Api.Contracts.Common;
 using DatingApp.Api.Contracts.Messages;
 using DatingApp.Api.Extensions;
 using DatingApp.Api.Services.MessagesService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,6 +11,7 @@ namespace DatingApp.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MessagesController(IMessagesService messagesService) : ControllerBase
     {
         private readonly IMessagesService _messagesService = messagesService;

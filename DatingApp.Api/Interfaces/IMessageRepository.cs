@@ -18,5 +18,12 @@ namespace DatingApp.Api.Interfaces
         Task<IEnumerable<MessageResponse>> GetMessagesThreadAsync(string currentUsername, string recipientUsername);
 
         Task<int> SaveChangesAsync();
+
+        void AddGroup(Group group);
+        void RemoveConnection(Connection connection);
+
+        Task<Connection?> GetConnectionAsync(string connectionId);
+        Task<Group?> GetMessageGroupAsync(string groupName);
+        Task<Group?> GetGroupForConnectionAsync(string connectionId);
     }
 }

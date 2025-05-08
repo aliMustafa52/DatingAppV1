@@ -4,17 +4,22 @@ using DatingApp.Api.Contracts.Messages;
 using DatingApp.Api.Contracts.Users;
 using DatingApp.Api.Entities;
 using DatingApp.Api.Errors;
+using DatingApp.Api.Helpers;
 using DatingApp.Api.Interfaces;
+using DatingApp.Api.SignalR;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DatingApp.Api.Services.MessagesService
 {
-    public class MessagesService(IMessageRepository messageRepository, IUserRepository userRepository) 
+    public class MessagesService(IMessageRepository messageRepository,
+        IUserRepository userRepository, IHubContext<PresenceHub> hubContext) 
         : IMessagesService
     {
         private readonly IMessageRepository _messageRepository = messageRepository;
         private readonly IUserRepository _userRepository = userRepository;
+        private readonly IHubContext<PresenceHub> _hubContext = hubContext;
 
         public async Task<Result<MessageResponse>> CreateMessage(string username,MessageRequest request)
         {
@@ -34,6 +39,25 @@ namespace DatingApp.Api.Services.MessagesService
                 RecipientUsername = request.RecipientUsername,
                 Content = request.Content
             };
+
+            var groupName = MessageHelpers.GetGroupName(username, request.RecipientUsername);
+            var group = await _messageRepository.GetMessageGroupAsync(groupName);
+            if(group is not null && group.Connections.Any(x => x.Username == request.RecipientUsername))
+            {
+                message.ReadOn = DateTime.UtcNow;
+            }
+            else
+            {
+                var connections = await PresenceTracker.GetConnectionForUser(request.RecipientUsername);
+                if(connections is not null && connections.Count != 0)
+                {
+                    await _hubContext.Clients.Clients(connections).SendAsync("NewMessageReceived",new
+                    {
+                        username = sender.UserName,
+                        knownAs = sender.KnownAs
+                    });
+                }
+            }
 
             _messageRepository.AddMessage(message);
             var updated = await _messageRepository.SaveChangesAsync();

@@ -9,6 +9,7 @@ using DatingApp.Api.Services.LikesService;
 using DatingApp.Api.Services.MessagesService;
 using DatingApp.Api.Services.PhotosService;
 using DatingApp.Api.Services.UsersService;
+using DatingApp.Api.SignalR;
 using FluentValidation;
 using Mapster;
 using MapsterMapper;
@@ -54,7 +55,10 @@ namespace DatingApp.Api
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
+
+            //signalR
             services.AddSignalR();
+            services.AddSingleton<IPresenceTracker, PresenceTracker>();
 
             return services;
         }
@@ -98,6 +102,7 @@ namespace DatingApp.Api
                     builder
                     .AllowAnyMethod()
                     .AllowAnyHeader()
+                    .AllowCredentials()
                     .WithOrigins("http://localhost:4200")
                 )
 
@@ -138,6 +143,20 @@ namespace DatingApp.Api
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSetting?.Key!)),
                         ValidIssuer = jwtSetting?.Issuer,
                         ValidAudience = jwtSetting?.Audience
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+
+                            if(!string.IsNullOrEmpty(path) && path.StartsWithSegments("/hubs"))
+                                context.Token = accessToken;
+
+                            return Task.CompletedTask;
+                        }
                     };
                 });
 

@@ -14,6 +14,11 @@ namespace DatingApp.Api.Repositories
     {
         private readonly ApplicationDbContext _context = context;
 
+        public void AddGroup(Group group)
+        {
+            _context.Groups.Add(group);
+        }
+
         public void AddMessage(Message message)
         {
             _context.Messages.Add(message);
@@ -24,12 +29,32 @@ namespace DatingApp.Api.Repositories
             _context.Messages.Remove(message);
         }
 
+        public async Task<Connection?> GetConnectionAsync(string connectionId)
+        {
+            return await _context.Connections.FindAsync(connectionId);
+        }
+
+        public async Task<Group?> GetGroupForConnectionAsync(string connectionId)
+        {
+            return await _context.Groups
+                .Include(x => x.Connections)
+                .Where(x => x.Connections.Any(x => x.ConnectinId == connectionId))
+                .FirstOrDefaultAsync();
+        }
+
         public Task<Message?> GetMessageAsync(int id)
         {
             var message = _context.Messages
                 .SingleOrDefaultAsync(x => x.Id == id);
 
             return message;
+        }
+
+        public async Task<Group?> GetMessageGroupAsync(string groupName)
+        {
+            return await _context.Groups
+                    .Include(x => x.Connections)
+                    .FirstOrDefaultAsync(x => x.Name == groupName);
         }
 
         public async Task<PaginatedList<MessageResponse>> GetMessagesForUserAsync(RequestMessageFilters filters)
@@ -63,32 +88,11 @@ namespace DatingApp.Api.Repositories
                     && !m.SenderDeleted) 
                 ||(m.SenderUsername == recipientUsername && m.RecipientUsername == currentUsername 
                     && !m.RecipientDeleted))
-                .OrderByDescending(x => x.SentOn)
+                .OrderBy(x => x.SentOn)
                 .ProjectToType<MessageResponse>()
-                //.Select(m => new MessageResponse(
-                //        m.Id,
-                //        m.SenderId,
-                //        m.SenderUsername,
-                //        m.Sender.Photos.SingleOrDefault(p => p.IsMain)!.Url,
-                //        m.RecipientId,
-                //        m.RecipientUsername,
-                //        m.Recipient.Photos.SingleOrDefault(p => p.IsMain)!.Url,
-                //        m.Content,
-                //        m.SentOn,
-                //        m.ReadOn))
+
                 .ToListAsync();
 
-            //var unreadMessages = messages.Where(x => x.ReadOn == null 
-            //        &&  x.RecipientUsername == recipientUsername)
-            //        .ToList();
-            //if (unreadMessages.Count != 0)
-            //{
-            //    foreach (var unreadMessage in unreadMessages)
-            //    {
-            //        unreadMessage.ReadOn = DateTime.UtcNow;
-            //        await _context.SaveChangesAsync();
-            //    }
-            //}
             await _context.Messages
                 .Where(m =>
                     m.SenderUsername == currentUsername &&
@@ -97,7 +101,12 @@ namespace DatingApp.Api.Repositories
                 .ExecuteUpdateAsync(setters =>
                     setters.SetProperty(m => m.ReadOn , DateTime.UtcNow));
 
-            return messages.Adapt<IEnumerable<MessageResponse>>();
+            return messages;
+        }
+
+        public void RemoveConnection(Connection connection)
+        {
+            _context.Connections.Remove(connection);
         }
 
         public async Task<int> SaveChangesAsync()
